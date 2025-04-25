@@ -43,6 +43,7 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import ClearIcon from '@mui/icons-material/Clear';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import { styled } from '@mui/material/styles';
+import Background3D from '../components/Background3D';
 
 const API_URL = 'https://srijandubey.github.io/campus-api-mock/SRM-C1-25.json';
 
@@ -117,15 +118,33 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
   },
 }));
 
-const StyledCard = styled(Card)(({ theme }) => ({
-  background: `linear-gradient(145deg, ${theme.palette.background.paper}, ${alpha(theme.palette.primary.dark, 0.2)})`,
-  backdropFilter: 'blur(10px)',
-  borderRadius: theme.shape.borderRadius * 2,
-  transition: 'all 0.3s ease',
+const StyledCard = styled(Box)(({ theme }) => ({
+  background: 'rgba(26, 26, 26, 0.6)',
+  backdropFilter: 'blur(20px)',
+  borderRadius: theme.shape.borderRadius,
+  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+  border: '1px solid rgba(255, 255, 255, 0.05)',
+  position: 'relative',
+  overflow: 'hidden',
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: '100%',
+    background: 'linear-gradient(45deg, rgba(144, 169, 89, 0.1), transparent)',
+    opacity: 0,
+    transition: 'opacity 0.4s ease',
+  },
   '&:hover': {
     transform: 'translateY(-8px)',
-    boxShadow: '0 16px 48px rgba(0, 0, 0, 0.4)',
-  },
+    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
+    border: '1px solid rgba(144, 169, 89, 0.3)',
+    '&::before': {
+      opacity: 1,
+    }
+  }
 }));
 
 const StyledAvatar = styled(Avatar)(({ theme }) => ({
@@ -151,11 +170,38 @@ const StyledChip = styled(Chip)(({ theme }) => ({
   },
 }));
 
+const StyledButton = styled(Button)(({ theme }) => ({
+  background: 'linear-gradient(45deg, #90A959, #556B2F)',
+  color: '#ffffff',
+  textTransform: 'none',
+  borderRadius: theme.shape.borderRadius,
+  padding: '10px 24px',
+  position: 'relative',
+  overflow: 'hidden',
+  transition: 'all 0.4s ease',
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: '-100%',
+    width: '100%',
+    height: '100%',
+    background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent)',
+    transition: 'left 0.6s ease',
+  },
+  '&:hover': {
+    transform: 'translateY(-2px)',
+    boxShadow: '0 8px 16px rgba(144, 169, 89, 0.3)',
+    '&::before': {
+      left: '100%',
+    }
+  }
+}));
+
 const DoctorListing = () => {
   const [doctors, setDoctors] = useState([]);
   const [filteredDoctors, setFilteredDoctors] = useState([]);
   const [searchParams, setSearchParams] = useSearchParams();
-  const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [specialtySearch, setSpecialtySearch] = useState('');
@@ -244,31 +290,6 @@ const DoctorListing = () => {
     setFilteredDoctors(filtered);
   }, [doctors, searchParams]);
 
-  // Handle search input changes
-  const handleSearchChange = (event, value) => {
-    if (value) {
-      const matches = doctors
-        .filter(doctor =>
-          doctor?.name?.toLowerCase().includes(value.toLowerCase())
-        )
-        .slice(0, 3);
-      setSuggestions(matches);
-    } else {
-      setSuggestions([]);
-    }
-  };
-
-  // Handle search selection
-  const handleSearchSelect = (event, value) => {
-    const params = new URLSearchParams(searchParams);
-    if (value) {
-      params.set('search', value.name);
-    } else {
-      params.delete('search');
-    }
-    setSearchParams(params);
-  };
-
   // Handle consultation mode change
   const handleModeChange = (event) => {
     const params = new URLSearchParams(searchParams);
@@ -306,7 +327,6 @@ const DoctorListing = () => {
 
   const clearAllFilters = () => {
     setSearchParams({});
-    setSuggestions([]);
   };
 
   const filteredSpecialties = PREDEFINED_SPECIALTIES.filter(specialty =>
@@ -356,22 +376,37 @@ const DoctorListing = () => {
         margin: 0,
         padding: 0,
         display: 'flex',
-        flexDirection: 'column'
+        flexDirection: 'column',
+        position: 'relative',
+        overflowX: 'hidden'
       }}>
+        <Background3D />
+        
         {/* Search Bar Section */}
         <Box sx={{ 
           width: '100%', 
           position: 'sticky', 
           top: 0, 
           zIndex: 1200,
-          background: '#000000',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-          py: { xs: 1.5, md: 2 },
-          px: { xs: 1.5, md: 2 }
+          background: 'rgba(0, 0, 0, 0.8)',
+          backdropFilter: 'blur(20px)',
+          borderBottom: '1px solid rgba(144, 169, 89, 0.1)',
+          padding: '16px 24px',
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            width: '100%',
+            height: '1px',
+            background: 'linear-gradient(90deg, transparent, rgba(144, 169, 89, 0.3), transparent)',
+          }
         }}>
           <Autocomplete
             freeSolo
-            options={doctors}
+            options={doctors.slice(0, 3).filter(doctor =>
+              doctor?.name?.toLowerCase().includes((searchParams.get('search') || '').toLowerCase())
+            )}
             getOptionLabel={(option) => option?.name || ''}
             onChange={(event, value) => {
               const params = new URLSearchParams(searchParams);
@@ -383,11 +418,13 @@ const DoctorListing = () => {
               setSearchParams(params);
             }}
             onInputChange={(event, value) => {
-              if (!value) {
-                const params = new URLSearchParams(searchParams);
+              const params = new URLSearchParams(searchParams);
+              if (value) {
+                params.set('search', value);
+              } else {
                 params.delete('search');
-                setSearchParams(params);
               }
+              setSearchParams(params);
             }}
             value={doctors.find(d => d?.name === searchParams.get('search')) || null}
             renderInput={(params) => (
@@ -395,6 +432,7 @@ const DoctorListing = () => {
                 {...params}
                 placeholder="Search Symptoms, Doctors, Specialists, Clinics"
                 fullWidth
+                data-testid="autocomplete-input"
                 InputProps={{
                   ...params.InputProps,
                   startAdornment: <SearchIcon sx={{ color: '#90A959', mr: 1 }} />,
@@ -402,32 +440,28 @@ const DoctorListing = () => {
                 sx={{
                   '& .MuiOutlinedInput-root': {
                     borderRadius: 1,
-                    backgroundColor: '#ffffff',
+                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
                     '&:hover': {
-                      backgroundColor: '#ffffff',
+                      backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                    },
+                    '& input': {
+                      color: '#ffffff'
                     }
                   }
                 }}
               />
             )}
             renderOption={(props, option) => (
-              <Box component="li" {...props} sx={{ 
-                p: 1.5,
-                '&:hover': { backgroundColor: 'rgba(144, 169, 89, 0.1)' }
-              }}>
+              <Box component="li" {...props} sx={{ p: 1.5 }} data-testid="suggestion-item">
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                   <Avatar
                     src={option?.photo}
-                    sx={{ 
-                      width: 40,
-                      height: 40,
-                      bgcolor: '#90A959'
-                    }}
+                    sx={{ width: 40, height: 40, bgcolor: '#90A959' }}
                   >
                     {option?.name?.[0]}
                   </Avatar>
                   <Box>
-                    <Typography sx={{ fontWeight: 500 }}>
+                    <Typography sx={{ fontWeight: 500, color: '#ffffff' }}>
                       {option?.name}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
@@ -445,17 +479,20 @@ const DoctorListing = () => {
           flex: 1,
           display: 'flex',
           width: '100%',
-          gap: { xs: 1.5, md: 2 },
-          p: { xs: 1.5, md: 2 }
+          padding: '24px',
+          gap: '24px',
+          position: 'relative',
+          zIndex: 1
         }}>
           {/* Left Side - Filters */}
           <Box sx={{ 
-            width: { xs: '100%', md: 280 },
+            width: { xs: '100%', md: '280px' },
             flexShrink: 0,
             position: { xs: 'fixed', md: 'sticky' },
             top: { xs: 'auto', md: 80 },
             bottom: { xs: 0, md: 'auto' },
-            left: { xs: 0, md: 'auto' },
+            left: 0,
+            right: { xs: 0, md: 'auto' },
             zIndex: { xs: 1100, md: 1 },
             transform: { 
               xs: searchParams.size > 0 ? 'translateY(0)' : 'translateY(100%)',
@@ -464,12 +501,12 @@ const DoctorListing = () => {
             transition: 'transform 0.3s ease-in-out',
             height: { xs: 'auto', md: 'fit-content' },
             maxHeight: { xs: '80vh', md: 'none' },
-            overflowY: { xs: 'auto', md: 'visible' }
+            overflowY: { xs: 'auto', md: 'visible' },
+            padding: { xs: '16px', md: 0 }
           }}>
-            <Box sx={{ 
-              background: '#1A1A1A',
+            <StyledCard sx={{ 
+              padding: '24px',
               borderRadius: { xs: '12px 12px 0 0', md: 1 },
-              p: { xs: 2, md: 3 },
               boxShadow: { 
                 xs: '0px -4px 20px rgba(0, 0, 0, 0.25)', 
                 md: 'none' 
@@ -578,10 +615,10 @@ const DoctorListing = () => {
                       backgroundColor: 'rgba(255, 255, 255, 0.05)',
                       '& fieldset': {
                         borderColor: 'rgba(255, 255, 255, 0.1)'
+                      },
+                      '& input': {
+                        color: '#ffffff'
                       }
-                    },
-                    '& .MuiInputBase-input': {
-                      color: '#ffffff'
                     }
                   }}
                   InputProps={{
@@ -594,15 +631,24 @@ const DoctorListing = () => {
                 />
                 <Box 
                   sx={{ 
-                    maxHeight: 300,
+                    maxHeight: '400px',
                     overflowY: 'auto',
+                    pr: 1,
+                    mt: 2,
                     '&::-webkit-scrollbar': {
-                      width: 6,
+                      width: '8px',
                       backgroundColor: 'rgba(255, 255, 255, 0.05)',
                     },
                     '&::-webkit-scrollbar-thumb': {
-                      backgroundColor: 'rgba(144, 169, 89, 0.3)',
-                      borderRadius: 3,
+                      backgroundColor: 'rgba(144, 169, 89, 0.5)',
+                      borderRadius: '4px',
+                      '&:hover': {
+                        backgroundColor: 'rgba(144, 169, 89, 0.7)',
+                      }
+                    },
+                    '&::-webkit-scrollbar-track': {
+                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                      borderRadius: '4px',
                     }
                   }}
                 >
@@ -613,7 +659,7 @@ const DoctorListing = () => {
                         <Checkbox
                           checked={searchParams.getAll('specialty').includes(specialty)}
                           onChange={() => handleSpecialtyChange(specialty)}
-                          data-testid={`filter-specialty-${specialty.replace(/\s+/g, '-')}`}
+                          data-testid={`filter-specialty-${specialty.replace(/[\s/]+/g, '-')}`}
                           sx={{
                             color: '#90A959',
                             '&.Mui-checked': { color: '#90A959' }
@@ -621,13 +667,27 @@ const DoctorListing = () => {
                         />
                       }
                       label={
-                        <Typography sx={{ color: '#ffffff' }}>
+                        <Typography 
+                          sx={{ 
+                            color: '#ffffff',
+                            fontSize: '0.9rem',
+                            textOverflow: 'ellipsis',
+                            overflow: 'hidden',
+                            whiteSpace: 'nowrap',
+                            maxWidth: '180px'
+                          }}
+                        >
                           {specialty}
                         </Typography>
                       }
                       sx={{ 
-                        display: 'block',
-                        mb: 1
+                        display: 'flex',
+                        margin: '8px 0',
+                        alignItems: 'center',
+                        width: '100%',
+                        '& .MuiCheckbox-root': {
+                          padding: '4px 8px',
+                        }
                       }}
                     />
                   ))}
@@ -691,159 +751,197 @@ const DoctorListing = () => {
                   />
                 </RadioGroup>
               </Box>
-            </Box>
+            </StyledCard>
           </Box>
 
           {/* Right Side - Doctor Cards */}
           <Box sx={{ 
             flex: 1,
             minWidth: 0,
-            mb: { xs: '80px', md: 0 } // Space for mobile filters
+            mb: { xs: '80px', md: 0 },
+            width: '100%'
           }}>
-            <Grid container spacing={{ xs: 1.5, md: 2 }}>
+            <Grid container spacing={2}>
               {filteredDoctors.length > 0 ? (
-                filteredDoctors.map((doctor) => (
-                  <Grid item xs={12} key={doctor?.id}>
-                    <Box sx={{ 
-                      p: { xs: 2, md: 3 },
-                      background: '#1A1A1A',
-                      borderRadius: 1
-                    }}>
-                      <Grid container spacing={{ xs: 1.5, md: 2 }}>
-                        <Grid item xs={12} sm={8}>
-                          <Box sx={{ display: 'flex', gap: { xs: 1.5, md: 2 } }}>
-                            <Avatar
-                              src={doctor?.photo}
-                              sx={{ 
-                                width: { xs: 64, md: 80 },
-                                height: { xs: 64, md: 80 },
-                                bgcolor: '#90A959'
-                              }}
-                            >
-                              {doctor?.name?.[0]}
-                            </Avatar>
-                            <Box>
-                              <Typography
+                filteredDoctors.map((doctor, index) => (
+                  <Grow
+                    in={true}
+                    timeout={300 + index * 100}
+                    key={doctor?.id}
+                  >
+                    <Grid item xs={12}>
+                      <StyledCard sx={{ 
+                        padding: '24px',
+                        width: '100%'
+                      }}>
+                        <Grid container spacing={2}>
+                          <Grid item xs={12} sm={8}>
+                            <Box sx={{ display: 'flex', gap: '16px' }}>
+                              <Avatar
+                                src={doctor?.photo}
+                                sx={{ 
+                                  width: { xs: 64, md: 80 },
+                                  height: { xs: 64, md: 80 },
+                                  bgcolor: '#90A959',
+                                  border: '2px solid rgba(144, 169, 89, 0.3)',
+                                  transition: 'all 0.4s ease',
+                                  position: 'relative',
+                                  '&::before': {
+                                    content: '""',
+                                    position: 'absolute',
+                                    top: -4,
+                                    left: -4,
+                                    right: -4,
+                                    bottom: -4,
+                                    border: '2px solid rgba(144, 169, 89, 0.2)',
+                                    borderRadius: '50%',
+                                    animation: 'pulse 2s infinite',
+                                  },
+                                  '@keyframes pulse': {
+                                    '0%': {
+                                      transform: 'scale(1)',
+                                      opacity: 0.8,
+                                    },
+                                    '50%': {
+                                      transform: 'scale(1.1)',
+                                      opacity: 0.4,
+                                    },
+                                    '100%': {
+                                      transform: 'scale(1)',
+                                      opacity: 0.8,
+                                    },
+                                  },
+                                  '&:hover': {
+                                    transform: 'scale(1.1) rotate(5deg)',
+                                    border: '2px solid rgba(144, 169, 89, 0.8)',
+                                    boxShadow: '0 0 20px rgba(144, 169, 89, 0.3)',
+                                  }
+                                }}
+                              >
+                                {doctor?.name?.[0]}
+                              </Avatar>
+                              <Box sx={{ flex: 1 }}>
+                                <Typography
+                                  variant="h6"
+                                  data-testid="doctor-name"
+                                  sx={{ 
+                                    fontWeight: 600,
+                                    color: '#ffffff',
+                                    mb: 1,
+                                    fontSize: { xs: '1.1rem', md: '1.25rem' },
+                                    transition: 'color 0.3s ease',
+                                    '&:hover': {
+                                      color: '#90A959'
+                                    }
+                                  }}
+                                >
+                                  {doctor?.name}
+                                </Typography>
+                                <Typography 
+                                  color="rgba(255, 255, 255, 0.7)"
+                                  data-testid="doctor-specialty"
+                                  sx={{ fontSize: { xs: '0.9rem', md: '1rem' } }}
+                                >
+                                  {doctor?.specialties?.join(', ')}
+                                </Typography>
+                                <Typography 
+                                  variant="body2" 
+                                  color="rgba(255, 255, 255, 0.7)" 
+                                  sx={{ 
+                                    mt: 0.5,
+                                    fontSize: { xs: '0.8rem', md: '0.875rem' }
+                                  }}
+                                >
+                                  {doctor?.qualifications}
+                                </Typography>
+                                <Box sx={{ 
+                                  display: 'flex', 
+                                  alignItems: 'center', 
+                                  gap: '8px',
+                                  mt: 1 
+                                }}>
+                                  <WorkIcon sx={{ color: '#90A959', fontSize: '1rem' }} />
+                                  <Typography 
+                                    variant="body2"
+                                    data-testid="doctor-experience"
+                                    sx={{ 
+                                      color: '#ffffff',
+                                      fontSize: { xs: '0.8rem', md: '0.875rem' }
+                                    }}
+                                  >
+                                    {doctor?.experience} yrs exp
+                                  </Typography>
+                                </Box>
+                              </Box>
+                            </Box>
+                          </Grid>
+                          <Grid item xs={12} sm={4}>
+                            <Box sx={{ 
+                              display: 'flex',
+                              flexDirection: { xs: 'row', sm: 'column' },
+                              justifyContent: { xs: 'space-between', sm: 'flex-end' },
+                              alignItems: { xs: 'center', sm: 'flex-end' },
+                              height: '100%',
+                              gap: '16px'
+                            }}>
+                              <Typography 
                                 variant="h6"
-                                data-testid="doctor-name"
+                                data-testid="doctor-fee"
                                 sx={{ 
                                   fontWeight: 600,
-                                  color: '#ffffff',
-                                  mb: 0.5,
+                                  color: '#90A959',
                                   fontSize: { xs: '1.1rem', md: '1.25rem' }
                                 }}
                               >
-                                {doctor?.name}
+                                ₹{doctor?.fees}
                               </Typography>
-                              <Typography 
-                                color="rgba(255, 255, 255, 0.7)"
-                                data-testid="doctor-specialty"
-                                sx={{ fontSize: { xs: '0.9rem', md: '1rem' } }}
-                              >
-                                {doctor?.specialties?.join(', ')}
-                              </Typography>
+                              <StyledButton>
+                                Book Appointment
+                              </StyledButton>
+                            </Box>
+                          </Grid>
+                          <Grid item xs={12}>
+                            <Box sx={{ 
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                              mt: 2,
+                              opacity: 0.7,
+                              transition: 'opacity 0.3s ease',
+                              '&:hover': {
+                                opacity: 1
+                              }
+                            }}>
+                              <LocationOnIcon sx={{ color: '#90A959' }} />
                               <Typography 
                                 variant="body2" 
-                                color="rgba(255, 255, 255, 0.7)" 
+                                color="rgba(255, 255, 255, 0.7)"
                                 sx={{ 
-                                  mt: 0.5,
-                                  fontSize: { xs: '0.8rem', md: '0.875rem' }
+                                  fontSize: { xs: '0.8rem', md: '0.875rem' },
+                                  flex: 1
                                 }}
                               >
-                                {doctor?.qualifications}
-                              </Typography>
-                              <Typography 
-                                variant="body2"
-                                data-testid="doctor-experience"
-                                sx={{ 
-                                  color: '#ffffff',
-                                  mt: 1,
-                                  fontSize: { xs: '0.8rem', md: '0.875rem' }
-                                }}
-                              >
-                                {doctor?.experience} yrs exp
+                                {doctor?.clinic?.name && (
+                                  <>
+                                    {doctor.clinic.name}
+                                    {doctor.clinic.locality && `, ${doctor.clinic.locality}`}
+                                    {doctor.clinic.city && `, ${doctor.clinic.city}`}
+                                  </>
+                                )}
                               </Typography>
                             </Box>
-                          </Box>
+                          </Grid>
                         </Grid>
-                        <Grid item xs={12} sm={4}>
-                          <Box sx={{ 
-                            display: 'flex',
-                            flexDirection: { xs: 'row', sm: 'column' },
-                            justifyContent: { xs: 'space-between', sm: 'flex-start' },
-                            alignItems: { xs: 'center', sm: 'flex-end' },
-                            height: '100%',
-                            gap: { xs: 1, sm: 0 }
-                          }}>
-                            <Typography 
-                              variant="h6"
-                              data-testid="doctor-fee"
-                              sx={{ 
-                                fontWeight: 600,
-                                color: '#ffffff',
-                                mb: { xs: 0, sm: 2 },
-                                fontSize: { xs: '1.1rem', md: '1.25rem' }
-                              }}
-                            >
-                              ₹{doctor?.fees}
-                            </Typography>
-                            <Button
-                              variant="contained"
-                              sx={{ 
-                                mt: { xs: 0, sm: 'auto' },
-                                textTransform: 'none',
-                                borderRadius: 1,
-                                px: 3,
-                                backgroundColor: '#90A959',
-                                '&:hover': {
-                                  backgroundColor: '#7A914C'
-                                },
-                                fontSize: { xs: '0.9rem', md: '1rem' }
-                              }}
-                            >
-                              Book Appointment
-                            </Button>
-                          </Box>
-                        </Grid>
-                        <Grid item xs={12}>
-                          <Box sx={{ 
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 1,
-                            mt: { xs: 0.5, md: 1 }
-                          }}>
-                            <LocationOnIcon 
-                              sx={{ 
-                                color: '#90A959',
-                                fontSize: { xs: '1.1rem', md: '1.25rem' }
-                              }} 
-                            />
-                            <Typography 
-                              variant="body2" 
-                              color="rgba(255, 255, 255, 0.7)"
-                              sx={{ fontSize: { xs: '0.8rem', md: '0.875rem' } }}
-                            >
-                              {doctor?.clinic?.name && (
-                                <>
-                                  {doctor.clinic.name}
-                                  {doctor.clinic.locality && `, ${doctor.clinic.locality}`}
-                                  {doctor.clinic.city && `, ${doctor.clinic.city}`}
-                                </>
-                              )}
-                            </Typography>
-                          </Box>
-                        </Grid>
-                      </Grid>
-                    </Box>
-                  </Grid>
+                      </StyledCard>
+                    </Grid>
+                  </Grow>
                 ))
               ) : (
                 <Grid item xs={12}>
-                  <Box sx={{ 
-                    p: { xs: 3, md: 4 },
+                  <StyledCard sx={{ 
+                    padding: '32px',
                     textAlign: 'center',
-                    background: '#1A1A1A',
-                    borderRadius: 1
+                    width: '100%'
                   }}>
                     <Typography 
                       variant="h6" 
@@ -855,7 +953,7 @@ const DoctorListing = () => {
                     >
                       No doctors found matching your criteria
                     </Typography>
-                  </Box>
+                  </StyledCard>
                 </Grid>
               )}
             </Grid>
