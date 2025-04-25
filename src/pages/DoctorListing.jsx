@@ -440,12 +440,12 @@ const DoctorListing = () => {
                 sx={{
                   '& .MuiOutlinedInput-root': {
                     borderRadius: 1,
-                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                    backgroundColor: '#ffffff',
                     '&:hover': {
-                      backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                      backgroundColor: '#ffffff',
                     },
                     '& input': {
-                      color: '#ffffff'
+                      color: '#000000'
                     }
                   }
                 }}

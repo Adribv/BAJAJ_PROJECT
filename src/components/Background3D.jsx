@@ -12,7 +12,6 @@ function ParticleField({ count = 2000 }) {
     const color = new THREE.Color();
     
     for (let i = 0; i < count; i++) {
-      // Create a spiral pattern
       const theta = THREE.MathUtils.randFloatSpread(360);
       const r = THREE.MathUtils.randFloat(5, 20);
       
@@ -20,7 +19,6 @@ function ParticleField({ count = 2000 }) {
       positions[i * 3 + 1] = THREE.MathUtils.randFloatSpread(20);
       positions[i * 3 + 2] = r * Math.sin(theta);
 
-      // Gradient colors from olive green to darker shades
       const mixAmount = Math.random();
       color.setHSL(0.23, 0.6, 0.3 + mixAmount * 0.2);
       
@@ -36,7 +34,6 @@ function ParticleField({ count = 2000 }) {
     points.current.rotation.y = time * 0.05;
     points.current.rotation.z = time * 0.03;
     
-    // Breathing effect
     points.current.scale.x = 1 + Math.sin(time * 0.3) * 0.1;
     points.current.scale.y = 1 + Math.sin(time * 0.3) * 0.1;
     points.current.scale.z = 1 + Math.sin(time * 0.3) * 0.1;
